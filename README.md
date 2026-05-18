@@ -36,30 +36,36 @@ Implementado bajo un enfoque de **Dashboard SPA (Single Page Application)** din�
 
 El diseño relacional asegura la integridad referencial y un histórico fidedigno de interacciones.
 
-[AQUÍ: Inserta el embed o imagen exportada de tu diagrama de dbdiagram.io]
-*(Ejemplo de formato: ![Database Schema](https://link-a-tu-imagen.com/schema.png))*
+![Database Schema](./docs/images/schema.png)
 
 ---
 
 ## 🔥 Funcionalidades Clave
 
-### 1. Pipeline de Ventas Automotriz (Kanban / List)
-Visualización clara del embudo de ventas filtrado por etapas del negocio. Clasificación automática por prioridades (Alta, Media, Baja) y cálculo localizado de montos financieros.
+### 1. Panel de Control (Dashboard) y KPIs en Tiempo Real
+Visualización instantánea del estado comercial del negocio. Incluye tarjetas de métricas clave (clientes totales, seguimientos pendientes) y un desglose dinámico del valor monetario del pipeline según la etapa de negociación, formateado para la moneda local.
 
-*[AQUÍ: Insertar Captura 1 - Vista General del Pipeline]*
+![Vista del Dashboard](./docs/images/dashboard.png)
 
-### 2. Bitácora de Interacciones Enriquecida
-Historial unificado y cronológico de cada punto de contacto con el cliente (Llamadas, WhatsApp, Emails, Reuniones Presenciales) enlazado directamente a las oportunidades activas.
+### 2. Pipeline de Ventas y Búsqueda Predictiva
+Listado centralizado para la gestión de oportunidades. Cuenta con indicadores visuales (badges) para clasificar rápidamente la prioridad (Alta, Media, Baja) y la etapa del negocio. Incorpora una barra de búsqueda optimizada para filtrar clientes o negocios de forma eficiente.
 
-*[AQUÍ: Insertar Captura 2 - Formulario y Bitácora de Interacciones]*
+![Vista de Ventas](./docs/images/opportunities.png)
 
-### 3. Sistema de Papelera y Recuperación Avanzada (Soft Delete)
-Mecanismo de seguridad para datos sensibles. Los registros eliminados por ejecutivos van a una papelera intermedia donde un administrador puede restaurar la oportunidad/cliente o ejecutar un borrado definitivo de forma segura.
+### 3. Bitácora de Interacciones Enriquecida
+Historial cronológico fundamental para el seguimiento de clientes. Permite registrar cada punto de contacto diferenciando el canal de comunicación (Email, Llamada, etc.) mediante identificadores visuales, indicando la fecha, la nota descriptiva y qué miembro del equipo registró la actividad.
 
-*[AQUÍ: Insertar Captura 3 - Papelera de Negocios y Roles de Admin]*
+![Vista de Interacciones](./docs/images/interactions.png)
 
-### 4. Búsqueda con Debounce y Paginación Server-Side
-Filtrado predictivo reactivo en tiempo real que optimiza las peticiones al servidor retrasando la ejecución del fetch hasta que el usuario finaliza la escritura.
+### 4. Gestión de Equipo y Control de Accesos (RBAC)
+Módulo de administración para el control de la fuerza de ventas. Implementa seguridad basada en roles (Administrador vs. Usuario estándar), visualización del estado de las cuentas (Activo/Inactivo) y herramientas para auditar o modificar los accesos al sistema CRM.
+
+![Vista de Gestión de Usuarios](./docs/images/users.png)
+
+### 5. Papelera de Negocios y Recuperación (Soft Delete)
+Mecanismo de seguridad para prevenir la pérdida accidental de datos sensibles. Los negocios eliminados no se borran de la base de datos inmediatamente, sino que pasan a una papelera donde un administrador puede auditar, restaurar la oportunidad con un clic, o ejecutar una eliminación definitiva.
+
+![Vista de Papelera](./docs/images/trash.png)
 
 ---
 
@@ -104,4 +110,4 @@ pnpm run dev
 
 ## 📄 Licencia
 
-Este proyecto es de uso público exclusivamente con fines de portafolio académico y demostración técnica profesional.
+Este proyecto es de uso público con fines de mostrar en el portafolio y demostrar técnica profesional.
