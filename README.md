@@ -1,4 +1,4 @@
-# Commercial Automotive CRM 🚗💼
+# CRM COMERCIAL - MVP 🚗💼
 
 Este es un sistema de Gestión de Relaciones con Clientes (CRM) diseñado específicamente para optimizar el pipeline de ventas en el sector automotriz. La aplicación permite gestionar el ciclo de vida completo de una oportunidad comercial, desde el contacto inicial hasta el cierre del negocio, asignación de ejecutivos, bitácora de interacciones y un sistema avanzado de recuperación de datos (Soft Delete).
 
@@ -94,7 +94,7 @@ docker-compose up -d
 
 **Para el Backend:**
 ```bash
-cd backend
+cd server
 pnpm install
 pnpm run start:dev
 ```
