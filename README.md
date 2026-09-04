@@ -1,40 +1,60 @@
 # Commercial Automotive CRM 🚗💼
 
-Este es un sistema de Gestión de Relaciones con Clientes (CRM) diseñado específicamente para optimizar el pipeline de ventas en el sector automotriz. La aplicación permite gestionar el ciclo de vida completo de una oportunidad comercial, desde el contacto inicial hasta el cierre del negocio, asignación de ejecutivos, bitácora de interacciones y un sistema avanzado de recuperación de datos (Soft Delete).
+[![NestJS](https://img.shields.io/badge/Backend-NestJS-E0234E?logo=nestjs)](https://nestjs.com/)
+[![Next.js](https://img.shields.io/badge/Frontend-Next.js-black?logo=next.js)](https://nextjs.org/)
+[![PostgreSQL](https://img.shields.io/badge/DB-PostgreSQL-336791?logo=postgresql)](https://www.postgresql.org/)
+[![Docker](https://img.shields.io/badge/Infra-Docker-2496ED?logo=docker)](https://www.docker.com/)
+[![TypeScript](https://img.shields.io/badge/Lang-TypeScript-3178C6?logo=typescript)](https://www.typescriptlang.org/)
+
+> **Nota:** este repositorio documenta un proyecto CRM desarrollado de forma privada para el sector automotriz. El código fuente vive en un repositorio privado; este espacio muestra la arquitectura, las decisiones técnicas y capturas del sistema en funcionamiento. Para verlo funcionando en vivo, usa el link de demo más abajo.
+
+Sistema de Gestión de Relaciones con Clientes (CRM) diseñado específicamente para optimizar el pipeline de ventas en el sector automotriz. La aplicación gestiona el ciclo de vida completo de una oportunidad comercial, desde el contacto inicial hasta el cierre del negocio, con asignación de ejecutivos, bitácora de interacciones y un sistema avanzado de recuperación de datos (Soft Delete).
+
 
 ---
 
 ## 🚀 Stack Tecnológico
 
-El proyecto está construido bajo una arquitectura desacoplada utilizando herramientas modernas y tipado estricto de extremo a extremo:
+Arquitectura desacoplada con tipado estricto de extremo a extremo:
 
-* **Backend:** NestJS (Framework modular progresivo de Node.js) & TypeScript.
-* **Frontend:** Next.js (App Router), React & Tailwind CSS.
-* **Base de Datos:** PostgreSQL.
-* **Gestión de Dependencias:** pnpm.
-* **Infraestructura:** Docker & Docker Compose (para consistencia en entornos de desarrollo).
+* **Backend:** NestJS (Node.js) & TypeScript
+* **Frontend:** Next.js (App Router), React & Tailwind CSS
+* **Base de Datos:** PostgreSQL + TypeORM
+* **Gestión de Dependencias:** pnpm
+* **Infraestructura:** Docker & Docker Compose (desarrollo), Render + Supabase + Vercel (producción)
+* **Almacenamiento:** AWS S3 (importación de archivos)
 
 ---
 
 ## 🏛️ Arquitectura y Lógica de Negocio
 
 ### Backend (NestJS)
-Diseñado bajo los principios de **Arquitectura Modular**. Cada dominio (*Users, Customers, Opportunities, Interactions*) está encapsulado en su propio módulo, garantizando alta cohesión y bajo acoplamiento:
-* **Controladores:** Exposición de endpoints RESTful limpios y validados mediante `class-validator`.
-* **Servicios:** Capa de lógica de negocio pura aislada de la infraestructura.
-* **Persistencia:** Repositorios optimizados mediante queries relacionales y paginación nativa controlada por metadatos (`limit`, `offset`, `totalCount`, `lastPage`).
-* **Seguridad:** Autenticación robusta implementada mediante JSON Web Tokens (JWT) con guardianes (`Guards`) para el control de acceso basado en roles (`admin` / `user`).
+Diseñado bajo principios de **Arquitectura Modular**. Cada dominio (*Users, Customers, Opportunities, Interactions, Import*) está encapsulado en su propio módulo, con alta cohesión y bajo acoplamiento:
+
+* **Controladores:** Endpoints RESTful validados mediante `class-validator`, documentados con Swagger/OpenAPI.
+* **Servicios:** Capa de lógica de negocio aislada de la infraestructura.
+* **Persistencia:** Repositorios con paginación server-side controlada por metadatos (`limit`, `offset`, `totalCount`, `lastPage`).
+* **Seguridad:** JWT con Guards para control de acceso basado en roles (`admin` / `user`).
+
+### Pipeline de Importación Masiva (S3) — el diferenciador técnico del proyecto
+Sistema de importación de clientes/oportunidades vía Excel/CSV con arquitectura de nivel producción:
+
+* Subida a S3 en zona `pending/`, con `finalize` (mover a ubicación definitiva) solo tras validación completa.
+* Transacción todo-o-nada: si una fila falla, no se guarda nada en BD ni se mueve el archivo en S3.
+* Rollback en cascada: si falla el guardado post-finalize, se elimina el archivo ya movido en S3 (evita huérfanos).
+* Descarga del archivo original vía URL firmada de S3 con expiración corta.
+* Historial de importaciones (`ImportLog`) con búsqueda, filtro por tipo, rango de fechas y paginación.
 
 ### Frontend (Next.js & React)
-Implementado bajo un enfoque de **Dashboard SPA (Single Page Application)** dinámico:
-* **Custom Hooks & Control de Flujo:** Consumo asíncrono optimizado mediante envolturas `useCallback` y control de desmontaje (`isMounted`) para mitigar fugas de memoria y *cascading renders* innecesarios recomendados por el equipo core de React.
-* **Optimización UI/UX:** Refrescos silenciosos de datos en segundo plano tras mutaciones exitosas (POST/PATCH/DELETE) para evitar parpadeos visuales molestos, combinados con estados de carga basados en *Skeletons* de alta fidelidad.
+Dashboard SPA con foco en experiencia percibida:
+
+* **Custom Hooks:** consumo asíncrono con `useCallback` y control de desmontaje (`isMounted`) para evitar fugas de memoria y *cascading renders*.
+* **UX pulida:** refrescos silenciosos tras mutaciones (POST/PATCH/DELETE) sin parpadeos, estados de carga con Skeletons.
+* **Responsive real:** tablas que colapsan a tarjetas en mobile, no solo scroll horizontal forzado.
 
 ---
 
-## 📊 Modelo de Datos (Esquema de BD)
-
-El diseño relacional asegura la integridad referencial y un histórico fidedigno de interacciones.
+## 📊 Modelo de Datos
 
 ![Database Schema](./docs/images/schema.png)
 
@@ -43,71 +63,64 @@ El diseño relacional asegura la integridad referencial y un histórico fidedign
 ## 🔥 Funcionalidades Clave
 
 ### 1. Panel de Control (Dashboard) y KPIs en Tiempo Real
-Visualización instantánea del estado comercial del negocio. Incluye tarjetas de métricas clave (clientes totales, seguimientos pendientes) y un desglose dinámico del valor monetario del pipeline según la etapa de negociación, formateado para la moneda local.
+Visualización instantánea del estado comercial: clientes totales, seguimientos pendientes, contactos del mes y valor del pipeline desglosado por etapa.
 
 ![Vista del Dashboard](./docs/images/dashboard.png)
 
 ### 2. Pipeline de Ventas y Búsqueda Predictiva
-Listado centralizado para la gestión de oportunidades. Cuenta con indicadores visuales (badges) para clasificar rápidamente la prioridad (Alta, Media, Baja) y la etapa del negocio. Incorpora una barra de búsqueda optimizada para filtrar clientes o negocios de forma eficiente.
+Listado centralizado de oportunidades con badges de prioridad (Alta/Media/Baja) y etapa del negocio, más búsqueda con debounce.
 
 ![Vista de Ventas](./docs/images/opportunities.png)
 
 ### 3. Bitácora de Interacciones Enriquecida
-Historial cronológico fundamental para el seguimiento de clientes. Permite registrar cada punto de contacto diferenciando el canal de comunicación (Email, Llamada, etc.) mediante identificadores visuales, indicando la fecha, la nota descriptiva y qué miembro del equipo registró la actividad.
+Historial cronológico por cliente, diferenciando canal de comunicación (Email, Llamada, WhatsApp, etc.), con fecha, nota y responsable del registro.
 
 ![Vista de Interacciones](./docs/images/interactions.png)
 
 ### 4. Gestión de Equipo y Control de Accesos (RBAC)
-Módulo de administración para el control de la fuerza de ventas. Implementa seguridad basada en roles (Administrador vs. Usuario estándar), visualización del estado de las cuentas (Activo/Inactivo) y herramientas para auditar o modificar los accesos al sistema CRM.
+Administración de la fuerza de ventas: roles (Admin/Usuario), estado de cuentas (Activo/Inactivo), auditoría de accesos.
 
 ![Vista de Gestión de Usuarios](./docs/images/users.png)
 
 ### 5. Papelera de Negocios y Recuperación (Soft Delete)
-Mecanismo de seguridad para prevenir la pérdida accidental de datos sensibles. Los negocios eliminados no se borran de la base de datos inmediatamente, sino que pasan a una papelera donde un administrador puede auditar, restaurar la oportunidad con un clic, o ejecutar una eliminación definitiva.
+Los negocios eliminados no se borran de inmediato — pasan a una papelera donde un Admin puede restaurar con un clic o eliminar definitivamente.
 
 ![Vista de Papelera](./docs/images/trash.png)
 
+### 6. Importación Masiva de Clientes (Excel/CSV vía S3)
+Carga de archivo, mapeo de columnas y confirmación de registros importados, con historial completo y descarga del archivo original.
+
+![Vista de Importación](./docs/images/import.png)
+
 ---
 
-## ⚙️ Configuración del Entorno de Desarrollo
+## 📱 Diseño Responsive
 
-### Requisitos Previos
-* Node.js (v18 o superior)
-* pnpm (`npm i -g pnpm`)
-* Docker & Docker Compose
+La interfaz está pensada mobile-first: las tablas colapsan a vista de tarjetas en pantallas pequeñas, en vez de forzar scroll horizontal.
 
-### 1. Clonar el repositorio
-```bash
-git clone https://github.com/tu-usuario/tu-repo-crm.git
-cd tu-repo-crm
-```
+![Vista Mobile - Pipeline](./docs/images/mobile-pipeline.png)
+![Vista Mobile - Dashboard](./docs/images/mobile-dashboard.png)
 
-### 2. Variables de Entorno
-Configura los archivos `.env` tanto en la raíz del backend como del frontend guiándote por los archivos `.env.example` provistos en cada carpeta.
+---
 
-### 3. Levantar Infraestructura (Base de Datos)
-```bash
-docker-compose up -d
-```
+## 🧪 Testing
 
-### 4. Ejecución del Proyecto
+* Tests unitarios sobre lógica de negocio no trivial (rollback transaccional de importación, guards de rol, filtros dinámicos).
+* Tests E2E cubriendo el happy path completo: login → creación de cliente → importación de archivo → verificación en historial.
 
-**Para el Backend:**
-```bash
-cd backend
-pnpm install
-pnpm run start:dev
-```
+---
 
-**Para el Frontend (Client):**
-```bash
-cd client
-pnpm install
-pnpm run dev
-```
+## 👤 Autor
+
+**Miguel Fuenzalida Navarro** — Desarrollador Full Stack
+📍 Curicó, Chile
+
+* Portafolio: [https://mfuenzalida-dev.vercel.app/]
+* LinkedIn: [https://www.linkedin.com/in/miguel-fuenzalida/]
+* Email: miguelfuenzalida.n@gmail.com
 
 ---
 
 ## 📄 Licencia
 
-Este proyecto es de uso público con fines de mostrar en el portafolio y demostrar técnica profesional.
+Este repositorio se comparte públicamente con fines de portafolio y demostración técnica.
